@@ -1,3 +1,4 @@
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[derive(xtra::Actor)]
@@ -5,10 +6,10 @@ struct Greeter;
 
 struct Hello(String);
 
-impl Handler<Hello> for Greeter {
+impl HandlerMut<Hello> for Greeter {
     type Return = ();
 
-    async fn handle(&mut self, Hello(name): Hello, _: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, Hello(name): Hello, _: &mut Context<Self>) -> Self::Return {
         println!("Hello {}", name)
     }
 }

@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use xtra::prelude::*;
-use xtra::Mailbox;
+use xtra::{HandlerMut, Mailbox};
 
 #[derive(xtra::Actor)]
 struct Printer {
@@ -23,10 +23,10 @@ impl Printer {
 
 struct Print(String);
 
-impl Handler<Print> for Printer {
+impl HandlerMut<Print> for Printer {
     type Return = ();
 
-    async fn handle(&mut self, print: Print, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, print: Print, ctx: &mut Context<Self>) {
         self.times += 1;
         println!(
             "Printing {} from printer {}. Printed {} times so far.",

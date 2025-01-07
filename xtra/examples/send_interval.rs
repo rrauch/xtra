@@ -4,17 +4,17 @@ use futures_core::Stream;
 use futures_util::stream::repeat;
 use futures_util::StreamExt;
 use xtra::prelude::*;
-use xtra::Error;
+use xtra::{Error, HandlerMut};
 
 #[derive(Default, xtra::Actor)]
 struct Greeter;
 
 struct Greet;
 
-impl Handler<Greet> for Greeter {
+impl HandlerMut<Greet> for Greeter {
     type Return = ();
 
-    async fn handle(&mut self, _: Greet, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: Greet, _ctx: &mut Context<Self>) {
         println!("Hello!");
     }
 }

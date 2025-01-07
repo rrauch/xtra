@@ -17,6 +17,7 @@ catty = "0.1.5"
 futures-core = "0.3.21" # alloc is the only default feature and we need it.
 futures-sink = { version = "0.3.21", default-features = false, optional = true }
 futures-util = { version = "0.3.21", default-features = false }
+async-lock = "3.4"
 pin-project-lite = "0.2.9"
 event-listener = "2.4.0"
 spin = { version = "0.9.3", default-features = false, features = ["spin_mutex"] }
@@ -54,6 +55,7 @@ smol = ["dep:smol"]
 tokio = ["dep:tokio"]
 wasm_bindgen = ["dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 sink = ["dep:futures-sink", "futures-util/sink"]
+nightly = []
 
 [[example]]
 name = "basic_tokio"

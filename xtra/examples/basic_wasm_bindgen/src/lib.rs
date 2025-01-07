@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[derive(xtra::Actor)]
@@ -7,10 +8,10 @@ struct Echoer;
 
 struct Echo(String);
 
-impl Handler<Echo> for Echoer {
+impl HandlerMut<Echo> for Echoer {
     type Return = String;
 
-    async fn handle(&mut self, echo: Echo, _ctx: &mut Context<Self>) -> String {
+    async fn handle_mut(&mut self, echo: Echo, _ctx: &mut Context<Self>) -> String {
         echo.0
     }
 }

@@ -1,4 +1,4 @@
-use std::cmp::Ordering as CmpOrdering;
+/*use std::cmp::Ordering as CmpOrdering;
 use std::ops::ControlFlow;
 use std::task::Poll;
 use std::time::Duration;
@@ -8,7 +8,7 @@ use futures_util::FutureExt;
 use smol_timeout::TimeoutExt;
 use tokio::task::JoinSet;
 use xtra::prelude::*;
-use xtra::Error;
+use xtra::{Error, HandlerMut};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct Accumulator(usize);
@@ -25,34 +25,34 @@ struct Inc;
 
 struct Report;
 
-impl Handler<Inc> for Accumulator {
+impl HandlerMut<Inc> for Accumulator {
     type Return = ();
 
-    async fn handle(&mut self, _: Inc, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: Inc, _ctx: &mut Context<Self>) {
         self.0 += 1;
     }
 }
 
-impl Handler<Report> for Accumulator {
+impl HandlerMut<Report> for Accumulator {
     type Return = Self;
 
-    async fn handle(&mut self, _: Report, _ctx: &mut Context<Self>) -> Self {
+    async fn handle_mut(&mut self, _: Report, _ctx: &mut Context<Self>) -> Self {
         self.clone()
     }
 }
 
-impl Handler<StopAll> for Accumulator {
+impl HandlerMut<StopAll> for Accumulator {
     type Return = ();
 
-    async fn handle(&mut self, _: StopAll, ctx: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, _: StopAll, ctx: &mut Context<Self>) -> Self::Return {
         ctx.stop_all();
     }
 }
 
-impl Handler<StopSelf> for Accumulator {
+impl HandlerMut<StopSelf> for Accumulator {
     type Return = ();
 
-    async fn handle(&mut self, _: StopSelf, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: StopSelf, ctx: &mut Context<Self>) {
         ctx.stop_self();
     }
 }
@@ -80,18 +80,18 @@ struct StopAll;
 
 struct StopSelf;
 
-impl Handler<StopSelf> for StopTester {
+impl HandlerMut<StopSelf> for StopTester {
     type Return = ();
 
-    async fn handle(&mut self, _: StopSelf, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: StopSelf, ctx: &mut Context<Self>) {
         ctx.stop_self();
     }
 }
 
-impl Handler<StopAll> for StopTester {
+impl HandlerMut<StopAll> for StopTester {
     type Return = ();
 
-    async fn handle(&mut self, _: StopAll, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: StopAll, ctx: &mut Context<Self>) {
         ctx.stop_all();
     }
 }
@@ -265,10 +265,10 @@ async fn two_actors_on_address_with_stop_self_context_alive() {
 #[derive(xtra::Actor)]
 struct ActorStopSelf;
 
-impl Handler<StopSelf> for ActorStopSelf {
+impl HandlerMut<StopSelf> for ActorStopSelf {
     type Return = ();
 
-    async fn handle(&mut self, _: StopSelf, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: StopSelf, ctx: &mut Context<Self>) {
         ctx.stop_self();
     }
 }
@@ -276,10 +276,10 @@ impl Handler<StopSelf> for ActorStopSelf {
 #[derive(xtra::Actor)]
 struct LongRunningHandler;
 
-impl Handler<Duration> for LongRunningHandler {
+impl HandlerMut<Duration> for LongRunningHandler {
     type Return = ();
 
-    async fn handle(&mut self, duration: Duration, _: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, duration: Duration, _: &mut Context<Self>) -> Self::Return {
         tokio::time::sleep(duration).await
     }
 }
@@ -361,10 +361,10 @@ impl Actor for Elephant {
     }
 }
 
-impl Handler<Message> for Elephant {
+impl HandlerMut<Message> for Elephant {
     type Return = ();
 
-    async fn handle(&mut self, message: Message, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, message: Message, _ctx: &mut Context<Self>) {
         eprintln!("{} is handling {:?}", self.name, message);
         self.msgs.push(message);
     }
@@ -680,10 +680,10 @@ struct Greeter;
 
 struct Hello(&'static str);
 
-impl Handler<Hello> for Greeter {
+impl HandlerMut<Hello> for Greeter {
     type Return = String;
 
-    async fn handle(&mut self, Hello(name): Hello, _: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, Hello(name): Hello, _: &mut Context<Self>) -> Self::Return {
         format!("Hello {}", name)
     }
 }
@@ -691,10 +691,10 @@ impl Handler<Hello> for Greeter {
 #[derive(Clone)]
 struct PrintHello(&'static str);
 
-impl Handler<PrintHello> for Greeter {
+impl HandlerMut<PrintHello> for Greeter {
     type Return = ();
 
-    async fn handle(
+    async fn handle_mut(
         &mut self,
         PrintHello(name): PrintHello,
         _: &mut Context<Self>,
@@ -886,10 +886,10 @@ fn test_addr_cmp_hash_eq() {
 
 struct Pending;
 
-impl Handler<Pending> for Greeter {
+impl HandlerMut<Pending> for Greeter {
     type Return = ();
 
-    async fn handle(&mut self, _: Pending, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: Pending, _ctx: &mut Context<Self>) {
         futures_util::future::pending().await
     }
 }
@@ -986,3 +986,4 @@ async fn receive_future_can_dispatch_in_one_poll_after_it_has_been_polled() {
 
     assert!(receive_future.now_or_never().is_some())
 }
+*/

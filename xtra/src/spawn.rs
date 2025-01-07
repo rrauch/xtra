@@ -4,11 +4,12 @@
 pub fn spawn_tokio<A>(
     actor: A,
     (address, mailbox): (crate::Address<A>, crate::Mailbox<A>),
+    concurrency_limit: impl Into<Option<usize>>,
 ) -> crate::Address<A>
 where
     A: crate::Actor<Stop = ()>,
 {
-    tokio::spawn(crate::run(mailbox, actor));
+    tokio::spawn(crate::run(mailbox, actor, concurrency_limit.into()));
 
     address
 }
@@ -19,11 +20,12 @@ where
 pub fn spawn_async_std<A>(
     actor: A,
     (address, mailbox): (crate::Address<A>, crate::Mailbox<A>),
+    concurrency_limit: impl Into<Option<usize>>,
 ) -> crate::Address<A>
 where
     A: crate::Actor<Stop = ()>,
 {
-    async_std::task::spawn(crate::run(mailbox, actor));
+    async_std::task::spawn(crate::run(mailbox, actor, concurrency_limit.into()));
 
     address
 }
@@ -34,11 +36,12 @@ where
 pub fn spawn_smol<A>(
     actor: A,
     (address, mailbox): (crate::Address<A>, crate::Mailbox<A>),
+    concurrency_limit: impl Into<Option<usize>>,
 ) -> crate::Address<A>
 where
     A: crate::Actor<Stop = ()>,
 {
-    smol::spawn(crate::run(mailbox, actor)).detach();
+    smol::spawn(crate::run(mailbox, actor, concurrency_limit.into())).detach();
 
     address
 }
@@ -49,11 +52,12 @@ where
 pub fn spawn_wasm_bindgen<A>(
     actor: A,
     (address, mailbox): (crate::Address<A>, crate::Mailbox<A>),
+    concurrency_limit: impl Into<Option<usize>>,
 ) -> crate::Address<A>
 where
     A: crate::Actor<Stop = ()>,
 {
-    wasm_bindgen_futures::spawn_local(crate::run(mailbox, actor));
+    wasm_bindgen_futures::spawn_local(crate::run(mailbox, actor, concurrency_limit.into()));
 
     address
 }

@@ -1,5 +1,6 @@
 use futures_util::stream::repeat;
 use futures_util::StreamExt;
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[derive(Default, xtra::Actor)]
@@ -11,18 +12,18 @@ struct Add(u32);
 
 struct GetSum;
 
-impl Handler<Add> for Accumulator {
+impl HandlerMut<Add> for Accumulator {
     type Return = ();
 
-    async fn handle(&mut self, Add(number): Add, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, Add(number): Add, _ctx: &mut Context<Self>) {
         self.sum += number;
     }
 }
 
-impl Handler<GetSum> for Accumulator {
+impl HandlerMut<GetSum> for Accumulator {
     type Return = u32;
 
-    async fn handle(&mut self, _: GetSum, _ctx: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, _: GetSum, _ctx: &mut Context<Self>) -> Self::Return {
         self.sum
     }
 }

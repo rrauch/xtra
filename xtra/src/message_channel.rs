@@ -9,7 +9,7 @@ use crate::address::{ActorJoinHandle, Address};
 use crate::chan::RefCounter;
 use crate::refcount::{Either, Strong, Weak};
 use crate::send_future::{ActorErasedSending, ResolveToHandlerReturn, SendFuture};
-use crate::Handler;
+use crate::HandlerAny;
 
 /// A message channel is a channel through which you can send only one kind of message, but to
 /// any actor that can handle it. It is like [`Address`], but associated with the message type rather
@@ -80,7 +80,7 @@ where
     /// The actor behind the [`Address`] must implement the [`Handler`] trait for the message type.
     pub fn new<A>(address: Address<A, Rc>) -> Self
     where
-        A: Handler<M, Return = R>,
+        A: HandlerAny<M, Return = R>,
         Rc: RefCounter + Into<Either>,
     {
         Self {
@@ -161,7 +161,7 @@ where
 
 impl<A, M, R, Rc> From<Address<A, Rc>> for MessageChannel<M, R, Rc>
 where
-    A: Handler<M, Return = R>,
+    A: HandlerAny<M, Return = R>,
     R: Send + 'static,
     M: Send + 'static,
     Rc: RefCounter + Into<Either>,
@@ -313,7 +313,7 @@ trait MessageChannelTrait<M, Rc> {
 
 impl<A, R, M, Rc: RefCounter> MessageChannelTrait<M, Rc> for Address<A, Rc>
 where
-    A: Handler<M, Return = R>,
+    A: HandlerAny<M, Return = R>,
     M: Send + 'static,
     R: Send + 'static,
     Rc: Into<Either>,
@@ -392,7 +392,7 @@ where
 mod test {
     use std::hash::{Hash, Hasher};
 
-    use crate::{Actor, Handler, Mailbox};
+    use crate::{Actor, Handler, HandlerMut, Mailbox};
 
     type TestMessageChannel = super::MessageChannel<TestMessage, ()>;
 
@@ -405,10 +405,15 @@ mod test {
         async fn stopped(self) -> Self::Stop {}
     }
 
-    impl Handler<TestMessage> for TestActor {
+    impl HandlerMut<TestMessage> for TestActor {
         type Return = ();
 
-        async fn handle(&mut self, _: TestMessage, _: &mut crate::Context<Self>) -> Self::Return {}
+        async fn handle_mut(
+            &mut self,
+            _: TestMessage,
+            _: &mut crate::Context<Self>,
+        ) -> Self::Return {
+        }
     }
 
     struct RecordingHasher(Vec<u8>);

@@ -2,6 +2,7 @@ use std::ops::ControlFlow;
 use std::time::Duration;
 
 use tokio::time::Instant;
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[derive(Default, xtra::Actor)]
@@ -11,10 +12,10 @@ struct Counter {
 
 struct Inc;
 
-impl Handler<Inc> for Counter {
+impl HandlerMut<Inc> for Counter {
     type Return = ();
 
-    async fn handle(&mut self, _inc: Inc, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _inc: Inc, _ctx: &mut Context<Self>) {
         // Do some "work"
         tokio::time::sleep(Duration::from_millis(50)).await;
         self.count += 1;
@@ -31,7 +32,7 @@ async fn main() {
             return;
         }
 
-        loop {
+        /*loop {
             let start = Instant::now();
             let msg = mailbox.next().await;
             println!("Got message in {}us", start.elapsed().as_micros());
@@ -52,7 +53,7 @@ async fn main() {
                 actor.count,
                 start.elapsed().as_secs_f32() * 1000.0
             );
-        }
+        }*/
     });
 
     for _ in 0..100 {

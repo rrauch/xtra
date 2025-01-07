@@ -9,7 +9,7 @@ use futures_util::FutureExt;
 
 use crate::chan::{MailboxFull, MessageToAll, MessageToOne, RefCounter, WaitingSender};
 use crate::envelope::{BroadcastEnvelopeConcrete, ReturningEnvelope};
-use crate::{chan, Error, Handler};
+use crate::{chan, Error, HandlerAny};
 
 /// A [`Future`] that represents the state of sending a message to an actor.
 ///
@@ -91,7 +91,7 @@ where
     /// Compared to [`SendFuture::sending_erased`], this function avoids one allocation.
     pub(crate) fn sending_named<M>(message: M, sender: chan::Ptr<A, Rc>) -> Self
     where
-        A: Handler<M, Return = R>,
+        A: HandlerAny<M, Return = R>,
         M: Send + 'static,
     {
         let (envelope, receiver) = ReturningEnvelope::<A, M, R>::new(message, 0);
@@ -110,7 +110,7 @@ impl<R> SendFuture<ActorErasedSending, ResolveToHandlerReturn<R>> {
     pub(crate) fn sending_erased<A, M, Rc>(message: M, sender: chan::Ptr<A, Rc>) -> Self
     where
         Rc: RefCounter,
-        A: Handler<M, Return = R>,
+        A: HandlerAny<M, Return = R>,
         M: Send + 'static,
         R: Send + 'static,
     {
@@ -132,7 +132,7 @@ where
 {
     pub(crate) fn broadcast_named<M>(msg: M, sender: chan::Ptr<A, Rc>) -> Self
     where
-        A: Handler<M, Return = ()>,
+        A: HandlerAny<M, Return = ()>,
         M: Clone + Send + Sync + 'static,
     {
         let envelope = BroadcastEnvelopeConcrete::new(msg, 0);
@@ -152,7 +152,7 @@ impl SendFuture<ActorErasedSending, Broadcast> {
     pub(crate) fn broadcast_erased<A, M, Rc>(msg: M, sender: chan::Ptr<A, Rc>) -> Self
     where
         Rc: RefCounter,
-        A: Handler<M, Return = ()>,
+        A: HandlerAny<M, Return = ()>,
         M: Clone + Send + Sync + 'static,
     {
         let envelope = BroadcastEnvelopeConcrete::new(msg, 0);

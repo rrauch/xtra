@@ -1,3 +1,4 @@
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 struct Initialized(Address<ActorA>);
@@ -9,36 +10,37 @@ struct ActorA {
     actor_b: Address<ActorB>,
 }
 
-impl Handler<Hello> for ActorA {
+impl HandlerMut<Hello> for ActorA {
     type Return = ();
 
-    async fn handle(&mut self, _: Hello, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: Hello, ctx: &mut Context<Self>) {
         println!("ActorA: Hello");
-        xtra::join(ctx.mailbox(), self, self.actor_b.send(Hello))
+        /*xtra::join(ctx.mailbox(), self, self.actor_b.send(Hello))
             .await
             .unwrap();
+         */
     }
 }
 
 #[derive(xtra::Actor)]
 struct ActorB;
 
-impl Handler<Initialized> for ActorB {
+impl HandlerMut<Initialized> for ActorB {
     type Return = ();
 
-    async fn handle(&mut self, m: Initialized, ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, m: Initialized, ctx: &mut Context<Self>) {
         println!("ActorB: Initialized");
         let actor_a = m.0;
-        xtra::join(ctx.mailbox(), self, actor_a.send(Hello))
+        /*xtra::join(ctx.mailbox(), self, actor_a.send(Hello))
             .await
-            .unwrap();
+            .unwrap();*/
     }
 }
 
-impl Handler<Hello> for ActorB {
+impl HandlerMut<Hello> for ActorB {
     type Return = ();
 
-    async fn handle(&mut self, _: Hello, _: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: Hello, _: &mut Context<Self>) {
         println!("ActorB: Hello");
     }
 }

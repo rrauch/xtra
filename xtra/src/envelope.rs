@@ -9,7 +9,7 @@ use futures_util::FutureExt;
 use crate::chan::{HasPriority, MessageToAll, MessageToOne, Priority};
 use crate::context::Context;
 use crate::instrumentation::{Instrumentation, Span};
-use crate::{Actor, Handler, Mailbox};
+use crate::{Actor, GuardedActor, HandlerAny, Mailbox};
 
 /// A message envelope is a struct that encapsulates a message and its return channel sender (if applicable).
 /// Firstly, this allows us to be generic over returning and non-returning messages (as all use the
@@ -32,7 +32,7 @@ pub trait MessageEnvelope: HasPriority + Send {
     /// and this allows us to consume the envelope.
     fn handle(
         self: Box<Self>,
-        act: &mut Self::Actor,
+        act: &GuardedActor<Self::Actor>,
         mailbox: Mailbox<Self::Actor>,
     ) -> (BoxFuture<ControlFlow<(), ()>>, Span);
 }
@@ -75,7 +75,7 @@ impl<A> HasPriority for MessageToOne<A> {
 
 impl<A, M, R> MessageEnvelope for ReturningEnvelope<A, M, R>
 where
-    A: Handler<M, Return = R>,
+    A: HandlerAny<M, Return = R>,
     M: Send + 'static,
     R: Send + 'static,
 {
@@ -92,7 +92,7 @@ where
 
     fn handle(
         self: Box<Self>,
-        act: &mut Self::Actor,
+        act: &GuardedActor<Self::Actor>,
         mailbox: Mailbox<Self::Actor>,
     ) -> (BoxFuture<ControlFlow<(), ()>>, Span) {
         let Self {
@@ -107,7 +107,8 @@ where
                 running: true,
                 mailbox,
             };
-            let r = act.handle(message, &mut ctx).await;
+
+            let r = A::handle(act, message, &mut ctx).await;
 
             if ctx.running {
                 (r, ControlFlow::Continue(()))
@@ -140,7 +141,7 @@ pub trait BroadcastEnvelope: HasPriority + Send + Sync {
 
     fn handle(
         self: Arc<Self>,
-        act: &mut Self::Actor,
+        act: &GuardedActor<Self::Actor>,
         mailbox: Mailbox<Self::Actor>,
     ) -> (BoxFuture<ControlFlow<()>>, Span);
 }
@@ -171,7 +172,7 @@ impl<A: Actor, M> BroadcastEnvelopeConcrete<A, M> {
 
 impl<A, M> BroadcastEnvelope for BroadcastEnvelopeConcrete<A, M>
 where
-    A: Handler<M, Return = ()>,
+    A: HandlerAny<M, Return = ()>,
     M: Clone + Send + Sync + 'static,
 {
     type Actor = A;
@@ -187,7 +188,7 @@ where
 
     fn handle(
         self: Arc<Self>,
-        act: &mut Self::Actor,
+        act: &GuardedActor<Self::Actor>,
         mailbox: Mailbox<Self::Actor>,
     ) -> (BoxFuture<ControlFlow<(), ()>>, Span) {
         let (msg, instrumentation) = (self.message.clone(), self.instrumentation.clone());
@@ -197,7 +198,8 @@ where
                 running: true,
                 mailbox,
             };
-            act.handle(msg, &mut ctx).await;
+
+            A::handle(act, msg, &mut ctx).await;
 
             if ctx.running {
                 ControlFlow::Continue(())
@@ -250,7 +252,7 @@ where
 
     fn handle(
         self: Arc<Self>,
-        _act: &mut Self::Actor,
+        _act: &GuardedActor<Self::Actor>,
         _mailbox: Mailbox<Self::Actor>,
     ) -> (BoxFuture<ControlFlow<()>>, Span) {
         Self::handle()

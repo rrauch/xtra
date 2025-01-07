@@ -13,7 +13,7 @@ use futures_util::FutureExt;
 
 use crate::refcount::{Either, RefCounter, Strong, Weak};
 use crate::send_future::{ActorNamedBroadcasting, Broadcast, ResolveToHandlerReturn};
-use crate::{chan, ActorNamedSending, Handler, SendFuture};
+use crate::{chan, ActorNamedSending, HandlerAny, SendFuture};
 
 /// An [`Address`] is a reference to an actor through which messages can be sent.
 ///
@@ -183,10 +183,10 @@ impl<A, Rc: RefCounter> Address<A, Rc> {
     pub fn send<M>(
         &self,
         message: M,
-    ) -> SendFuture<ActorNamedSending<A, Rc>, ResolveToHandlerReturn<<A as Handler<M>>::Return>>
+    ) -> SendFuture<ActorNamedSending<A, Rc>, ResolveToHandlerReturn<<A as HandlerAny<M>>::Return>>
     where
         M: Send + 'static,
-        A: Handler<M>,
+        A: HandlerAny<M>,
     {
         SendFuture::sending_named(message, self.0.clone())
     }
@@ -199,7 +199,7 @@ impl<A, Rc: RefCounter> Address<A, Rc> {
     pub fn broadcast<M>(&self, msg: M) -> SendFuture<ActorNamedBroadcasting<A, Rc>, Broadcast>
     where
         M: Clone + Send + Sync + 'static,
-        A: Handler<M, Return = ()>,
+        A: HandlerAny<M, Return = ()>,
     {
         SendFuture::broadcast_named(msg, self.0.clone())
     }
@@ -238,7 +238,7 @@ impl<A, Rc: RefCounter> Address<A, Rc> {
     #[cfg(feature = "sink")]
     pub fn into_sink<M>(self) -> impl futures_sink::Sink<M, Error = crate::Error>
     where
-        A: Handler<M, Return = ()>,
+        A: HandlerAny<M, Return = ()>,
         M: Send + 'static,
     {
         futures_util::sink::unfold((), move |(), message| self.send(message))

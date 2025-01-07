@@ -4,7 +4,7 @@ use std::time::Instant;
 use futures_util::FutureExt;
 use xtra::prelude::*;
 use xtra::refcount::Strong;
-use xtra::{ActorErasedSending, ActorNamedSending, SendFuture};
+use xtra::{ActorErasedSending, ActorNamedSending, HandlerMut, SendFuture};
 
 #[derive(xtra::Actor)]
 struct Counter {
@@ -16,26 +16,26 @@ struct Increment;
 struct IncrementWithData(usize);
 struct GetCount;
 
-impl Handler<Increment> for Counter {
+impl HandlerMut<Increment> for Counter {
     type Return = ();
 
-    async fn handle(&mut self, _: Increment, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: Increment, _ctx: &mut Context<Self>) {
         self.count += 1;
     }
 }
 
-impl Handler<IncrementWithData> for Counter {
+impl HandlerMut<IncrementWithData> for Counter {
     type Return = ();
 
-    async fn handle(&mut self, _: IncrementWithData, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _: IncrementWithData, _ctx: &mut Context<Self>) {
         self.count += 1;
     }
 }
 
-impl Handler<GetCount> for Counter {
+impl HandlerMut<GetCount> for Counter {
     type Return = usize;
 
-    async fn handle(&mut self, _: GetCount, _ctx: &mut Context<Self>) -> usize {
+    async fn handle_mut(&mut self, _: GetCount, _ctx: &mut Context<Self>) -> usize {
         let count = self.count;
         self.count = 0;
         count
@@ -99,7 +99,7 @@ async fn do_channel_benchmark<M, RM>(
     name: &str,
     f: impl Fn(&MessageChannel<M, ()>) -> SendFuture<ActorErasedSending, RM>,
 ) where
-    Counter: Handler<M, Return = ()> + Send,
+    Counter: HandlerMut<M, Return = ()> + Send,
     M: Send + 'static,
     SendFuture<ActorErasedSending, RM>: Future,
 {

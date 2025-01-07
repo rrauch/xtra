@@ -1,5 +1,6 @@
 //! Dedicated tests for checking the public API of xtra.
 
+use xtra::HandlerMut;
 use xtra::prelude::*;
 use xtra::refcount::{Either, RefCounter};
 
@@ -18,7 +19,7 @@ fn functions_on_address_with_generic_rc_counter<A, Rc, Rc2>(
     A: Actor,
     Rc: RefCounter,
     Rc2: RefCounter,
-    A: Handler<(), Return = ()>,
+    A: HandlerMut<(), Return = ()>,
 {
     address1.len();
     address1.capacity();

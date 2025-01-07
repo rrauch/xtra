@@ -12,11 +12,11 @@ use crate::chan::ActorMessage;
 use crate::envelope::Shutdown;
 use crate::instrumentation::Span;
 use crate::mailbox::Mailbox;
-use crate::Message;
+use crate::{Message, GuardedActor};
 
 impl<A> Message<A> {
     /// Dispatches this message to the given actor.
-    pub fn dispatch_to(self, actor: &mut A) -> DispatchFuture<'_, A> {
+    pub fn dispatch_to(self, actor: &GuardedActor<A>) -> DispatchFuture<'_, A> {
         DispatchFuture::new(
             self.inner,
             actor,
@@ -85,7 +85,7 @@ impl<'a, A> DispatchFuture<'a, A> {
         &self.span
     }
 
-    fn running(msg: ActorMessage<A>, act: &'a mut A, mailbox: Mailbox<A>) -> DispatchFuture<'a, A> {
+    fn running(msg: ActorMessage<A>, act: &'a GuardedActor<A>, mailbox: Mailbox<A>) -> DispatchFuture<'a, A> {
         let (fut, span) = match msg {
             ActorMessage::ToOneActor(msg) => msg.handle(act, mailbox),
             ActorMessage::ToAllActors(msg) => msg.handle(act, mailbox),
@@ -105,7 +105,7 @@ impl<'a, A> DispatchFuture<'a, A> {
 enum State<'a, A> {
     New {
         msg: ActorMessage<A>,
-        act: &'a mut A,
+        act: &'a GuardedActor<A>,
         mailbox: Mailbox<A>,
     },
     Running {
@@ -116,7 +116,7 @@ enum State<'a, A> {
 }
 
 impl<'a, A> DispatchFuture<'a, A> {
-    pub fn new(msg: ActorMessage<A>, act: &'a mut A, mailbox: Mailbox<A>) -> Self {
+    pub fn new(msg: ActorMessage<A>, act: &'a GuardedActor<A>, mailbox: Mailbox<A>) -> Self {
         DispatchFuture {
             state: State::New { msg, act, mailbox },
             span: Span::none(),

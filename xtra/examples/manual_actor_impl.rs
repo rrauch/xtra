@@ -1,3 +1,4 @@
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[derive(Default)]
@@ -18,18 +19,18 @@ impl Actor for MessageCounter {
 struct Ping;
 struct Stop;
 
-impl Handler<Ping> for MessageCounter {
+impl HandlerMut<Ping> for MessageCounter {
     type Return = ();
 
-    async fn handle(&mut self, _: Ping, _: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, _: Ping, _: &mut Context<Self>) -> Self::Return {
         self.num_messages += 1;
     }
 }
 
-impl Handler<Stop> for MessageCounter {
+impl HandlerMut<Stop> for MessageCounter {
     type Return = ();
 
-    async fn handle(&mut self, _: Stop, ctx: &mut Context<Self>) -> Self::Return {
+    async fn handle_mut(&mut self, _: Stop, ctx: &mut Context<Self>) -> Self::Return {
         ctx.stop_self();
     }
 }

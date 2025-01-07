@@ -29,6 +29,7 @@ use std::{fmt, io};
 use tracing::{Dispatch, Instrument};
 use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::FmtSubscriber;
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[tokio::test]
@@ -69,20 +70,20 @@ struct Tracer;
 
 struct Hello(&'static str);
 
-impl Handler<Hello> for Tracer {
+impl HandlerMut<Hello> for Tracer {
     type Return = ();
 
-    async fn handle(&mut self, message: Hello, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, message: Hello, _ctx: &mut Context<Self>) {
         tracing::info!("Hello {}", message.0)
     }
 }
 
 struct CreateInfoSpan;
 
-impl Handler<CreateInfoSpan> for Tracer {
+impl HandlerMut<CreateInfoSpan> for Tracer {
     type Return = ();
 
-    async fn handle(&mut self, _msg: CreateInfoSpan, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, _msg: CreateInfoSpan, _ctx: &mut Context<Self>) {
         tracing::info_span!("info_span").in_scope(|| tracing::info!("Test!"));
     }
 }

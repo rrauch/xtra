@@ -1,4 +1,5 @@
 use futures_util::future;
+use xtra::HandlerMut;
 use xtra::prelude::*;
 
 #[derive(xtra::Actor)]
@@ -6,10 +7,10 @@ struct MyActor;
 
 struct Print(String);
 
-impl Handler<Print> for MyActor {
+impl HandlerMut<Print> for MyActor {
     type Return = ();
 
-    async fn handle(&mut self, print: Print, _ctx: &mut Context<Self>) {
+    async fn handle_mut(&mut self, print: Print, _ctx: &mut Context<Self>) {
         println!("Printing {}", print.0);
     }
 }
